@@ -1,0 +1,7 @@
+Pillow==7.0.0
+Wand==0.5.8
+Werkzeug==0.16.0
+boto==2.49.0
+numpy==1.18.1
+requests==2.22.0
+sentry-sdk==0.18.0

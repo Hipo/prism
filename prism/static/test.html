@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prism Test</title>
+    <style type="text/css">
+        li {
+            list-style: none;
+            background-color: #aaa;
+        }
+        img {
+            border: 1px solid;
+        }
+    </style>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+<ul id="container">
+</ul>
+
+<script type="text/javascript">
+
+
+    cmds = [
+        'cmd=resize&w=100',
+        'cmd=resize&h=100',
+        'cmd=resize&w=100&h=100',
+        
+        'cmd=resize&w=100&h=100&preserve_ratio=1',
+        'cmd=resize&w=100&h=100&preserve_ratio=0',
+
+        'cmd=resize&w=100&h=100&premultiplied=1',
+        'cmd=resize&w=100&h=100&premultiplied=0',
+
+        'cmd=resize&w=100&h=100&out=jpg',
+        'cmd=resize&w=100&h=100&out=png',
+
+        'cmd=resize_then_fit&w=100&h=100',
+        'cmd=resize&w=100&h=100&resize_then_fit=1',
+        'cmd=resize_then_fit&w=100&h=100&out=jpg',
+
+        'cmd=resize_then_fit&w=100&h=100&frame_bg_color=1c1c1c',
+        'cmd=resize_then_fit&w=100&h=100&frame_bg_color=1c1c1c&out=jpg',
+
+        'cmd=resize_then_crop&w=100&h=100',
+        'cmd=resize&w=100&h=100&resize_then_crop=1',
+
+        'cmd=resize&w=100&h=100&crop_x=0&crop_y=0&crop_width=200&crop_height=200',
+        'cmd=resize&w=100&h=100&crop_x=50&crop_y=50&crop_width=200&crop_height=200',
+        'cmd=resize_then_fit&w=100&h=100&crop_x=50&crop_y=50&crop_width=200&crop_height=200',
+        'cmd=resize_then_fit&w=100&h=100&crop_x=-50&crop_y=50&crop_width=200&crop_height=200',
+        'cmd=resize&w=100&h=100&crop_x=-50&crop_y=50&crop_width=200&crop_height=200',
+
+        'cmd=resize_then_fit&width=100&height=100&crop_x=174&crop_y=21&crop_width=400&crop_height=400'
+    ]
+
+    var images = [
+        '/images/test-1.jpg',
+        '/images/test-bs.png',
+    ]
+
+    var urls = [];
+    images.forEach(function(f){
+        cmds.forEach(function(d){
+            urls.push(f + '?' + d);
+        })
+    });
+
+    var origins = [
+        location.origin,
+        'http://prism-dev.tryprism.com',
+    ]
+
+    var li = d3.select('#container').selectAll('li')
+            .data(urls)
+            .enter().append('li');
+
+    origins.forEach(function(origin){
+        li.append('img').attr('src', function(d){
+            return origin + d + '&no_redirect=1&force=true&customer=prism-dev&debug=1';
+        });
+    })
+    li.append('p').text(function(d){ return d});
+</script>
+</body>
+</html>

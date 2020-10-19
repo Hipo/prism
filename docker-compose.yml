@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  prism:
+    build:
+      context: .
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_BUCKET=tryprism-dev
+      - AWS_REGION=us-east-1
+      - TEST_IMAGE=images/test-1.jpg
+    volumes:
+      - '.:/prism'
+    ports:
+      - "8001:8000"
