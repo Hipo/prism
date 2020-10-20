@@ -19,8 +19,13 @@ COPY requirements.txt ./
 RUN pip install -U pip && pip install -r requirements.txt
 COPY prism.uwsgi.ini ./
 COPY prism ./prism/
-EXPOSE 8000
 
+# Expose HTTP port
+EXPOSE 8000
+# Expose uwsgi port
+EXPOSE 3001
+
+# These uwsgi options are set here as environment variables so they can be overridden later
 ENV UWSGI_PROCESSES=2
 ENV UWSGI_THREADS=2
 
