@@ -1,5 +1,8 @@
 # Prism - the image transformation service from Hipo
 
+
+[![Docker Image Version](https://img.shields.io/docker/v/hipolabs/prism?label=hipolabs%2Fprism)](https://hub.docker.com/r/hipolabs/prism 'DockerHub')
+
 ## How It Works
 Prism is an image transformation proxy for AWS S3. The source image is determined from the URL path. The transformation is determined from the URL query parameters. The transformed image is uploaded to S3 and a HTTP 302 Redirect response is returned pointing to the new image. Subsequent requests for the same image with the same parameters return the same S3 redirect without reprocessing the image.
 
