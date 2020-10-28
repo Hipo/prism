@@ -89,16 +89,16 @@ WARNING: This file must not be publicly accessible!
 ```
 {
     "foo": {
-        "write_bucket_name": "foo-production",
-        "write_bucket_region": "us-east-1",
-        "write_bucket_key_id": "AKIABLABLA...",
-        "write_bucket_secret_key": "XFiefjlfkjgls....",
+        "read_bucket_name": "foo-production",
+        "read_bucket_region": "us-east-1",
+        "read_bucket_key_id": "AKIABLABLA...",
+        "read_bucket_secret_key": "XFiefjlfkjgls....",
     },
     "bar": {
-        "write_bucket_name": "bar-images",
-        "write_bucket_region": "eu-west-1",
-        "write_bucket_key_id": "AKIAKABC...",
-        "write_bucket_secret_key": "SNf1jJf2ffD....",
+        "read_bucket_name": "bar-images",
+        "read_bucket_region": "eu-west-1",
+        "read_bucket_key_id": "AKIAKABC...",
+        "read_bucket_secret_key": "SNf1jJf2ffD....",
     },
 }
 ```

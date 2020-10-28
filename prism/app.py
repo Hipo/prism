@@ -361,10 +361,10 @@ def clear_old_tmp_files():
 
 class Customer(object):
     def __init__(self,
-                 read_bucket_name,
-                 read_bucket_key_id,
-                 read_bucket_secret_key,
-                 read_bucket_region,
+                 read_bucket_name=None,
+                 read_bucket_key_id=None,
+                 read_bucket_secret_key=None,
+                 read_bucket_region=None,
                  write_bucket_name=None,
                  write_bucket_key_id=None,
                  write_bucket_secret_key=None,
