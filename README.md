@@ -103,6 +103,8 @@ WARNING: This file must not be publicly accessible!
 }
 ```
 
+Note: `write_bucket_*` parameters may be included to separate read and write buckets.
+
 ### TEST_IMAGE
 The TEST_IMAGE setting is used to provide an image to be used for the test and health check endpoints. In multi customer mode the DEFAULT_CUSTOMER setting must also be set for the test endpoints to work.
 
