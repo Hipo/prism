@@ -1,6 +1,6 @@
 import unittest
 
-from app import get_dimensions, get_output_format, get_command, make_retina, convert_filters_to_json, get_opacity
+from prism.app import get_dimensions, get_output_format, get_command, make_retina, convert_filters_to_json, get_opacity
 
 
 class TestGetCommand(unittest.TestCase):
@@ -19,6 +19,8 @@ class TestGetDimensions(unittest.TestCase):
         self.assertRaises(Exception, get_dimensions, {'height': 200}, 'resize_then_crop')
         self.assertRaises(Exception, get_dimensions, {'width': 200}, 'resize_then_crop')
         self.assertRaises(Exception, get_dimensions, {'height': 10001, 'width': 10001}, 'resize')
+        self.assertEqual(get_dimensions({'height': 4001, 'width': 4001}, 'resize'), (4001, 4001))
+        self.assertRaises(Exception, get_dimensions, {'height': 4001, 'width': 4001, 'premultiplied': True}, 'resize')
         self.assertRaises(Exception, get_dimensions, {'height': '', 'width': ''}, 'resize')
 
 

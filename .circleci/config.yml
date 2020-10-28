@@ -25,14 +25,13 @@ jobs:
             - '/home/circleci/.local/bin'
             - '/home/circleci/.local/lib/python3.6/site-packages'
       - run:
-          command: cd prism && python -m unittest
+          command: python -m unittest
 
 workflows:
   version: 2
-  deployment:
+  tests:
     jobs:
+      - linter
       - tests:
-          filters:
-            branches:
-              only:
-                - main
+          requires:
+            - linter
