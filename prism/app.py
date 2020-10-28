@@ -223,7 +223,10 @@ def get_command(args):
 
 
 def get_dimensions(args, command):
-    max_dimension = 4000
+    max_dimension = 10000
+    if args.get('premultiplied'):
+        # We use a smaller max_dimension in this case because convert_to_premultiplied_png needs to make an in-memory copy
+        max_dimension = 4000
     width = args.get('w', args.get('width', None))
     height = args.get('h', args.get('height', None))
     if width:
