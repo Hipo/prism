@@ -6,6 +6,8 @@
 ## How It Works
 Prism is an image transformation proxy for AWS S3. The source image is determined from the URL path. The transformation is determined from the URL query parameters. The transformed image is uploaded to S3 and a HTTP 302 Redirect response is returned pointing to the new image. Subsequent requests for the same image with the same parameters return the same S3 redirect without reprocessing the image.
 
+![Prism Flow Diagram](flow.png)
+
 ### Example request:
 URL: `https://prism-dev.tryprism.com/images/test-1.jpg?h=200`  
 Image file: `images/test-1.jpg`  
