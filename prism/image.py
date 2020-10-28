@@ -169,8 +169,7 @@ class ImageOperator(object):
                 center_x, center_y = None, None
                 org_w, org_h = self.image.width, self.image.height
                 if use_smart_crop:
-                    from smartcrop import point_of_interest
-                    center_x, center_y = point_of_interest(self.filename)
+                    raise NotImplementedError()
 
                 if self.height < wanted_height and self.width < wanted_width:
                     # this is upscaling
@@ -382,34 +381,7 @@ class ImageOperator(object):
         im.save(file_name)
 
     def smart_crop(self, file_name, wanted_width, wanted_height, **kwargs):
-        assert wanted_width < 10000
-        assert wanted_height < 10000
-        from smartcrop import point_of_interest
-        logger.info("trying smartcrop - %s %s %s", file_name, wanted_width, wanted_height)
-        try:
-            self.image.auto_orient()
-        except:
-            pass
-        # get center
-        x, y = point_of_interest(file_name)
-        left = int(x - float(wanted_width / 2.0))
-        if left < 0:
-            left = 0
-        top = int(y - float(wanted_height / 2.0))
-        if top < 0:
-            top = 0
-        width = int(wanted_width / 2.0)
-        height = int(wanted_height / 2.0)
-
-        right = left + wanted_width
-        bottom = top + wanted_height
-        if bottom >= self.image.height:
-            bottom = self.image.height
-        if right >= self.image.width:
-            right = self.image.width
-
-        print("cropping from", left, top, right, bottom)
-        self.image.crop(left=left, top=top, right=right, bottom=bottom)
+        raise NotImplementedError()
 
 
 def convert_to_premultiplied_png(file):
