@@ -22,7 +22,7 @@ class ImageOperator(object):
     def resize_then_crop(self, geometry, preserve_ratio=True, gravity='center', **options):
         try:
             options.pop('resize_then_crop')
-        except:
+        except Exception:
             pass
         return self.resize(geometry=geometry,
                            preserve_ratio=preserve_ratio,
@@ -34,7 +34,7 @@ class ImageOperator(object):
     def resize_then_fit(self, geometry, preserve_ratio=True, gravity='center', **options):
         try:
             options.pop('resize_then_fit')
-        except:
+        except Exception:
             pass
         return self.resize(geometry=geometry,
                            preserve_ratio=preserve_ratio,
@@ -160,7 +160,7 @@ class ImageOperator(object):
 
         try:
             self.image.auto_orient()
-        except:
+        except Exception:
             pass
 
         if wanted_width and wanted_height:

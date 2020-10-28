@@ -43,7 +43,7 @@ class TestMakeRetina(unittest.TestCase):
 class TestConvertFiltersToJson(unittest.TestCase):
     def test_values(self):
         self.assertEqual(convert_filters_to_json({'filters': '["foo", {"bar":["baz", null, 1.0, 2]}]'}), ["foo", {"bar": ["baz", None, 1.0, 2]}])
-        self.assertRaises(Exception, convert_filters_to_json, {'filters':'["foo", "bar":["baz", null, 1.0, 2]}]'})
+        self.assertRaises(Exception, convert_filters_to_json, {'filters': '["foo", "bar":["baz", null, 1.0, 2]}]'})
 
 
 class TestGetOpacity(unittest.TestCase):

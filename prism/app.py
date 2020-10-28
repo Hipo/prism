@@ -427,7 +427,6 @@ class SingleCustomerCredentialsStore(object):
 
     def get_default_customer(self):
         return self.get_customer(None)
-    
 
 
 if settings.MULTI_CUSTOMER_MODE:
@@ -444,6 +443,6 @@ else:
 
 app = App(credentials_store=credentials_store)
 app = SentryWsgiMiddleware(app)
-# ProxyFix reads the X-Forwarded-* headers set by proxies (like ELB) 
+# ProxyFix reads the X-Forwarded-* headers set by proxies (like ELB)
 # and updates the request so things like request.scheme is correct.
 app = ProxyFix(app)

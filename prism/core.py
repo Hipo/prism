@@ -1,4 +1,3 @@
-import json
 import logging
 import boto
 import boto.s3.connection
@@ -8,7 +7,6 @@ from requests.adapters import HTTPAdapter
 from io import BytesIO
 from boto.s3.key import Key
 from wand.image import Image
-from wand.exceptions import MissingDelegateError
 
 from prism.image import ImageOperator, convert_to_premultiplied_png
 
