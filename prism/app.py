@@ -437,6 +437,7 @@ elif settings.S3_BUCKET:
             "read_bucket_region": settings.AWS_REGION,
             "read_bucket_key_id": settings.AWS_ACCESS_KEY_ID,
             "read_bucket_secret_key": settings.AWS_SECRET_ACCESS_KEY,
+            "write_bucket_name": settings.S3_WRITE_BUCKET or settings.S3_BUCKET,
         })
 else:
     raise Exception('S3_BUCKET must be set if MULTI_CUSTOMER_MODE is not true')
