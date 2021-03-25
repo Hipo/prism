@@ -64,8 +64,11 @@ Required Environment Variables:
 * S3_BUCKET [`myproject-images`]
 * TEST_IMAGE [`images/test-1.jpg`]
 * AWS_REGION [`us-east-1`]
-* AWS_ACCESS_KEY_ID (The access key must provide read & write access to the `S3_BUCKET`)
+* AWS_ACCESS_KEY_ID (The access key must provide read & write access to the `S3_BUCKET` (and `S3_WRITE_BUCKET` if provided).
 * AWS_SECRET_ACCESS_KEY
+
+Optional Environment Variables:
+* S3_WRITE_BUCKET [`myproject-prism-images`] (If not provided, default is `S3_BUCKET`.)
 
 ### Multi Customer Mode
 In Multi Customer Mode Prism can handle requests for multiple customers together, where each customer has a separate S3 bucket and separate credentials. The customers are separated by subdomain. The configuration and credentials for each subdomain are loaded from a `credentials.json` stored in the SECRETS_BUCKET. 
