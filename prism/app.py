@@ -79,7 +79,7 @@ class App(object):
         raise NotFound()
 
     def test(self, request):
-        return Response(open('static/test.html'), content_type='text/html')
+        return Response(open('prism/static/test.html'), content_type='text/html')
 
     def elb_health_check(self, request):
         # If HTTPError occurs or can't find the given image gives Response as 500
