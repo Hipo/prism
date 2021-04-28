@@ -52,21 +52,30 @@ class App(object):
         except HTTPException as e:
             return e
 
-    def main(self, request):
-        path = request.path[1:]
-        _, extension = os.path.splitext(path.lower())
-        if extension not in ('.png', '.jpg', '.jpeg'):
-            raise NotFound()
-        try:
-            args = parse_args(path, request)
-        except Exception as e:
-            raise BadRequest(e)
+    def get_customer(self, request):
         subdomain = request.args.get('customer', None)
         if subdomain is None:
             subdomain = request.host.split('.' + settings.DOMAIN)[0]
         with sentry_sdk.configure_scope() as scope:
             scope.set_tag("customer", subdomain)
         customer = self.credentials_store.get_customer(subdomain)
+        return customer
+
+    def main(self, request):
+        path = request.path[1:]
+        _, extension = os.path.splitext(path.lower())
+        if extension not in ('.png', '.jpg', '.jpeg', '.gif'):
+            raise NotFound()
+        if extension == '.gif' and request.args.get('out', 'gif') == 'gif':
+            customer = self.get_customer(request)
+            return redirect(core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path))
+        try:
+            args = parse_args(path, request)
+        except Exception as e:
+            raise BadRequest(e)
+
+        customer = self.get_customer(request)
+
         if args['command'] == 'info':
             return info(path, args, customer)
         else:
@@ -355,7 +364,7 @@ def clear_old_tmp_files():
             if os.stat(tmp_file).st_mtime < now - 300:
                 os.remove(tmp_file)
         except Exception:
-            # An error might occur if the file has aready been deleted by another proceess. We don't care.
+            # An error might occur if the file has already been deleted by another process. We don't care.
             pass
 
 
