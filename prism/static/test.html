@@ -83,11 +83,14 @@
 
     var ul = d3.select('#container')
     var li = ul.append('li')
+    var gif_image = '/images/baby_hipo.gif?h=100'
     origins.forEach(function(origin){
         li.append('img').attr('src', function(){
-                return origin + '/images/baby_hipo.gif';
+                return origin + gif_image;
             });
     })
+    li.append('p').text(function(d){ return gif_image});
+
 
 </script>
 </body>

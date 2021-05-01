@@ -66,15 +66,17 @@ class App(object):
         _, extension = os.path.splitext(path.lower())
         if extension not in ('.png', '.jpg', '.jpeg', '.gif'):
             raise NotFound()
-        if extension == '.gif' and request.args.get('out', 'gif') == 'gif':
-            customer = self.get_customer(request)
-            return redirect(core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path))
         try:
             args = parse_args(path, request)
         except Exception as e:
             raise BadRequest(e)
 
         customer = self.get_customer(request)
+        if extension == '.gif' and request.args.get('out', 'gif') == 'gif':
+            s3_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path)
+            if core.check_s3_object_exists(s3_url):
+                return redirect(s3_url)
+            raise NotFound()
 
         if args['command'] == 'info':
             return info(path, args, customer)
