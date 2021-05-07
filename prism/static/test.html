@@ -80,6 +80,18 @@
         });
     })
     li.append('p').text(function(d){ return d});
+
+    var ul = d3.select('#container')
+    var li = ul.append('li')
+    var gif_image = '/images/baby_hipo.gif'
+    origins.forEach(function(origin){
+        li.append('img').attr('src', function(){
+                return origin + gif_image + '?' + cmds[0];
+            });
+    })
+    li.append('p').text(function(d){ return gif_image + '?' + cmds[0]});
+
+
 </script>
 </body>
 </html>
