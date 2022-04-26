@@ -113,9 +113,15 @@ The TEST_IMAGE setting is used to provide an image to be used for the test and h
 
 ### uWSGI Configuration
 
-The Prism app runs under uWSGI. By default it runs with 2 processes and 2 threads per process. These settings can be overridden using the UWSGI_PROCESSES and UWSGI_THREADS environment variables. Similarly other options can be passed to uWSGI using UWSGI_* environment variables.
+The Prism app runs under uWSGI. By default, it runs with 2 processes and 2 threads per process. These settings can be overridden using the UWSGI_PROCESSES and UWSGI_THREADS environment variables. Similarly, other options can be passed to uWSGI using UWSGI_* environment variables.
 
 
 ## Deployment
 The Docker container runs a uwsgi process with a HTTP socket (port 8000) and a uwsgi socket (port 3001). For local development and testing connecting to the HTTP server is sufficient. For production use it is recommended to use Nginx in front of uwsgi. A sample Nginx configuration including caching setup is included here: [nginx-sample.conf](nginx-sample.conf)
+
+To run docker container use following command:
+
+`docker-compose -f docker-compose.yml -f docker-compose.development.yml up`
+
+The `8000` port of the container is mapped to the `8001` port of the host. Use `localhost:8001` to access the app.
 
