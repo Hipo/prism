@@ -180,7 +180,7 @@ def process(path, args, customer):
     exists = core.check_s3_object_exists(result_url)
     if args['with_info'] or args['force'] or not exists:
         clear_old_tmp_files()
-        im = fetch_image(args=args, original_url=original_url, exists=exists)
+        im = fetch_image(original_url=original_url)
         f = core.resize(im.clone(), cmd, options)
         bucket = dict(
             id=customer.write_bucket_name,
