@@ -161,7 +161,7 @@ def check_s3_object_exists(url):
 
 def upload_file(bucket_dict, file, new_filename):
     """
-    uploads file to s3 bucket under prism-thumbnails folder
+    uploads file to s3 bucket under prism-images folder
     """
 
     logger.info("bucket_key_id: %s", bucket_dict['key_id'])

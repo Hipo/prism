@@ -64,7 +64,7 @@ class App(object):
     def main(self, request):
         path = request.path[1:]
         _, extension = os.path.splitext(path.lower())
-        if extension not in ('.png', '.jpg', '.jpeg', '.gif'):
+        if extension not in ('.png', '.jpg', '.jpeg', '.gif', '.webp'):
             raise NotFound()
         try:
             args = parse_args(path, request)
@@ -152,19 +152,18 @@ def info(path, args, customer):
     return json_response(info)
 
 
-def fetch_image(args, original_url, exists):
-    if args['with_info'] or args['force'] or not exists:
-        try:
-            return core.fetch_image(original_url)
-        except HTTPError as e:
-            if e.response.status_code in (404, 403):
-                raise NotFound()
-            else:
-                raise
-        except core.EmptyOriginalFile as e:
-            raise BadRequest(e.message)
-        except core.InvalidImageError as e:
-            raise BadRequest(e.message)
+def fetch_image(original_url):
+    try:
+        return core.fetch_image(original_url)
+    except HTTPError as e:
+        if e.response.status_code in (404, 403):
+            raise NotFound()
+        else:
+            raise
+    except core.EmptyOriginalFile as e:
+        raise BadRequest(e.message)
+    except core.InvalidImageError as e:
+        raise BadRequest(e.message)
 
 
 def process(path, args, customer):
@@ -181,7 +180,7 @@ def process(path, args, customer):
     exists = core.check_s3_object_exists(result_url)
     if args['with_info'] or args['force'] or not exists:
         clear_old_tmp_files()
-        im = fetch_image(args=args, original_url=original_url, exists=exists)
+        im = fetch_image(original_url=original_url)
         f = core.resize(im.clone(), cmd, options)
         bucket = dict(
             id=customer.write_bucket_name,
