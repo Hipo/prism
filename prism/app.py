@@ -64,7 +64,7 @@ class App(object):
     def main(self, request):
         path = request.path[1:]
         _, extension = os.path.splitext(path.lower())
-        if extension not in ('.png', '.jpg', '.jpeg', '.gif', '.webp'):
+        if extension not in ('.png', '.jpg', '.jpeg', '.gif', '.webp', ''):
             raise NotFound()
         try:
             args = parse_args(path, request)
