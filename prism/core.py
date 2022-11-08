@@ -108,7 +108,12 @@ def get_thumb_filename(file_name, cmd, options):
             params.append(f'{k}__{value}')
     param_string = '--'.join(params)
 
-    extension = '.%s' % options['out_format']
+    out_format = options['out_format']
+    if out_format == "":
+        extension = ".png"
+    else:
+        extension = '.%s' % options['out_format']
+
     new_filename = f'{file_name}--{cmd}--{param_string}{extension}'
 
     return 'prism-images/' + new_filename
