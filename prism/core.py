@@ -110,6 +110,7 @@ def get_thumb_filename(file_name, cmd, options):
 
     out_format = options['out_format']
     if out_format == "":
+        # Fallback to "png" on extensionless original objects.
         extension = ".png"
     else:
         extension = '.%s' % options['out_format']
