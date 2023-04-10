@@ -200,7 +200,9 @@ def process(path, args, customer):
         r.headers['X-Accel-Redirect'] = '/s3/' + result_url.split('https://')[1]
         return r
     else:
-        return redirect(result_url)
+        response = redirect(result_url)
+        response.vary = "Accept"
+        return response
 
 
 def make_bool(x):
