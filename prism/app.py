@@ -201,7 +201,7 @@ def process(path, args, customer):
         return r
     else:
         response = redirect(result_url)
-        response.vary = "Accept"
+        response.vary = "accept"
         return response
 
 
