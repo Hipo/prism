@@ -135,10 +135,12 @@ def split_endpoint_url(endpoint_url: str) -> typing.Tuple[str, int, bool]:
     return host, port, secure
 
 
-def get_s3_url(bucket_name, bucket_region, path, host=None):
-    if host:
-        url = '{host}/{bucket}/{path}'.format(
-            host=host, bucket=bucket_name, path=path
+def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
+    if endpoint:
+        url = '{endpoint}/{bucket}/{path}'.format(
+            endpoint=endpoint.rstrip("/"),
+            bucket=bucket_name,
+            path=path.lstrip("/")
         )
     else:
         # we use region specific urls because s3 virtual hosts don't work with https
@@ -150,8 +152,7 @@ def get_s3_url(bucket_name, bucket_region, path, host=None):
         url = 'https://{subdomain}.amazonaws.com/{bucket}/{path}'.format(
             subdomain=subdomain, bucket=bucket_name, path=path
         )
-    print("S3 public URL: %s" % url)
-    logger.info("S3 public URL: %s", url)
+    logger.debug("S3 public URL: %s", url)
     return url
 
 
@@ -162,7 +163,7 @@ def fetch_image(url):
     t = r.elapsed.total_seconds()
     logging.info('S3 GET request time: %0.2f', t)
     r.raise_for_status()
-    if r.headers.get('content-length', 0) == '0':
+    if r.headers['content-length'] == '0':
         raise EmptyOriginalFile
     try:
         im = Image(file=BytesIO(r.content))
