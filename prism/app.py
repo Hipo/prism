@@ -73,7 +73,7 @@ class App(object):
 
         customer = self.get_customer(request)
         if extension == '.gif' and request.args.get('out', 'gif') == 'gif':
-            s3_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path)
+            s3_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
             if core.check_s3_object_exists(s3_url):
                 return redirect(s3_url)
             raise NotFound()
@@ -96,7 +96,7 @@ class App(object):
         # If HTTPError occurs or can't find the given image gives Response as 500
         customer = self.credentials_store.get_default_customer()
         path = settings.TEST_IMAGE
-        url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path)
+        url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
         try:
             if core.check_s3_object_exists(url):
                 return Response("OK")
@@ -106,10 +106,12 @@ class App(object):
 
     def test_info(self, request):
         customer = self.credentials_store.get_default_customer()
+        print("Customer: ", customer)
         return info(settings.TEST_IMAGE, None, customer)
 
     def test_resize(self, request):
         customer = self.credentials_store.get_default_customer()
+        print("Customer: ", customer)
         args = {
             'command': 'resize',
             'options': {
@@ -140,7 +142,7 @@ class App(object):
 
 
 def info(path, args, customer):
-    url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path)
+    url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, host=customer.read_bucket_endpoint)
     try:
         im = core.fetch_image(url)
     except HTTPError as e:
@@ -169,14 +171,14 @@ def fetch_image(original_url):
 def process(path, args, customer):
     cmd = args['command']
     options = args['options']
-    original_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path)
+    original_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
     if args['debug']:
         im = core.fetch_image(original_url)
         f = core.resize(im, cmd, options)
         r = Response(f, mimetype='image/jpeg')
         return r
     result_path = core.get_thumb_filename(path, cmd, options)
-    result_url = core.get_s3_url(customer.write_bucket_name, customer.write_bucket_region, result_path)
+    result_url = core.get_s3_url(customer.write_bucket_name, customer.write_bucket_region, result_path, customer.read_bucket_endpoint)
     exists = core.check_s3_object_exists(result_url)
     if args['with_info'] or args['force'] or not exists:
         clear_old_tmp_files()
@@ -187,6 +189,7 @@ def process(path, args, customer):
             key_id=customer.write_bucket_key_id,
             region=customer.write_bucket_region,
             secret_key=customer.write_bucket_secret_key,
+            endpoint_url=customer.read_bucket_endpoint,
         )
         core.upload_file(bucket, f, result_path)
         if args['with_info']:
@@ -375,19 +378,23 @@ class Customer(object):
                  read_bucket_key_id=None,
                  read_bucket_secret_key=None,
                  read_bucket_region=None,
+                 read_bucket_endpoint=None,
                  write_bucket_name=None,
                  write_bucket_key_id=None,
                  write_bucket_secret_key=None,
                  write_bucket_region=None,
+                 write_bucket_endpoint=None,
                  **kwargs):
         self.read_bucket_name = read_bucket_name
         self.read_bucket_key_id = read_bucket_key_id
         self.read_bucket_secret_key = read_bucket_secret_key
         self.read_bucket_region = read_bucket_region
+        self.read_bucket_endpoint = read_bucket_endpoint
         self.write_bucket_name = write_bucket_name or read_bucket_name
         self.write_bucket_key_id = write_bucket_key_id or read_bucket_key_id
         self.write_bucket_secret_key = write_bucket_secret_key or read_bucket_secret_key
         self.write_bucket_region = write_bucket_region or read_bucket_region
+        self.write_bucket_endpoint = write_bucket_endpoint or read_bucket_endpoint
 
 
 class CredentialsStore(object):
@@ -447,6 +454,7 @@ elif settings.S3_BUCKET:
             "read_bucket_region": settings.AWS_REGION,
             "read_bucket_key_id": settings.AWS_ACCESS_KEY_ID,
             "read_bucket_secret_key": settings.AWS_SECRET_ACCESS_KEY,
+            "read_bucket_endpoint": settings.S3_ENDPOINT_URL,
             "write_bucket_name": settings.S3_WRITE_BUCKET or settings.S3_BUCKET,
         })
 else:

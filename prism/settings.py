@@ -4,6 +4,7 @@ import os
 DOMAIN = os.environ.get('DOMAIN')
 S3_BUCKET = os.environ.get('S3_BUCKET')
 S3_WRITE_BUCKET = os.environ.get('S3_WRITE_BUCKET')
+S3_ENDPOINT_URL = os.environ.get('S3_ENDPOINT_URL')
 AWS_REGION = os.environ.get('AWS_REGION')
 TEST_IMAGE = os.environ.get('TEST_IMAGE')
 MULTI_CUSTOMER_MODE = os.environ.get('MULTI_CUSTOMER_MODE', 'false').lower() == 'true'

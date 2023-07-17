@@ -12,8 +12,10 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - S3_ENDPOINT_URL
       - S3_BUCKET=tryprism-dev
+      - S3_ENDPOINT_URL
       - AWS_REGION=us-east-1
       - TEST_IMAGE=images/test-1.jpg
-      - DOMAIN=local.tryprism.com
+      - DOMAIN=localhost
+    env_file:
+      - .env
