@@ -12,10 +12,10 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - S3_BUCKET=tryprism-dev
+      - S3_BUCKET
       - S3_ENDPOINT_URL
-      - AWS_REGION=us-east-1
-      - TEST_IMAGE=images/test-1.jpg
-      - DOMAIN=localhost
+      - AWS_REGION
+      - TEST_IMAGE
     env_file:
       - .env
+    command: [ "uwsgi", "--ini", "prism.uwsgi.development.ini" ]
