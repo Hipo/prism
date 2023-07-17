@@ -3,7 +3,6 @@ import typing
 import urllib.parse
 import boto
 import boto.s3.connection
-import boto3
 import requests
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
@@ -124,10 +123,10 @@ def get_thumb_filename(file_name, cmd, options):
 
 
 def split_endpoint_url(endpoint_url: str) -> typing.Tuple[str, int, bool]:
-    """ Split the endpoint url into parts to use with boto.s3.connection.S3Connection 
+    """ Split the endpoint url into parts to use with boto.s3.connection.S3Connection
     
-    Primarily for using alternative S3 endpoints such as Ceph, Minio, Digital Ocean Spaces, etc.
-    """ 
+    Primarily for using alternative S3 endpoints such as Ceph, Minio, DigitalOcean Spaces, etc.
+    """
     parsed_url = urllib.parse.urlparse(endpoint_url)
     host = parsed_url.hostname
     assert host, "S3 endpoint URL must contain a hostname"
