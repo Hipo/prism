@@ -13,7 +13,6 @@ from werkzeug.utils import redirect
 from werkzeug.contrib.fixers import ProxyFix
 from requests import HTTPError
 from boto.s3.key import Key
-from boto import connect_s3
 
 import prism.core as core
 import prism.settings as settings
@@ -73,7 +72,11 @@ class App(object):
 
         customer = self.get_customer(request)
         if extension == '.gif' and request.args.get('out', 'gif') == 'gif':
-            s3_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
+            s3_url = core.get_s3_url(
+                customer.read_bucket_name,
+                customer.read_bucket_region,
+                path,
+                endpoint=customer.read_bucket_endpoint_url)
             if core.check_s3_object_exists(s3_url):
                 return redirect(s3_url)
             raise NotFound()
@@ -96,7 +99,7 @@ class App(object):
         # If HTTPError occurs or can't find the given image gives Response as 500
         customer = self.credentials_store.get_default_customer()
         path = settings.TEST_IMAGE
-        url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
+        url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, endpoint=customer.read_bucket_endpoint_url)
         try:
             if core.check_s3_object_exists(url):
                 return Response("OK")
@@ -142,7 +145,11 @@ class App(object):
 
 
 def info(path, args, customer):
-    url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, host=customer.read_bucket_endpoint)
+    url = core.get_s3_url(
+        customer.read_bucket_name,
+        customer.read_bucket_region,
+        path,
+        endpoint=customer.read_bucket_endpoint_url)
     try:
         im = core.fetch_image(url)
     except HTTPError as e:
@@ -171,27 +178,27 @@ def fetch_image(original_url):
 def process(path, args, customer):
     cmd = args['command']
     options = args['options']
-    original_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, customer.read_bucket_endpoint)
+    original_url = core.get_s3_url(customer.read_bucket_name, customer.read_bucket_region, path, endpoint=customer.read_bucket_endpoint_url)
     if args['debug']:
         im = core.fetch_image(original_url)
         f = core.resize(im, cmd, options)
         r = Response(f, mimetype='image/jpeg')
         return r
     result_path = core.get_thumb_filename(path, cmd, options)
-    result_url = core.get_s3_url(customer.write_bucket_name, customer.write_bucket_region, result_path, customer.read_bucket_endpoint)
+    result_url = core.get_s3_url(customer.write_bucket_name, customer.write_bucket_region, result_path, endpoint=customer.write_bucket_endpoint_url)
     exists = core.check_s3_object_exists(result_url)
     if args['with_info'] or args['force'] or not exists:
         clear_old_tmp_files()
         im = fetch_image(original_url=original_url)
         f = core.resize(im.clone(), cmd, options)
-        bucket = dict(
-            id=customer.write_bucket_name,
+        bucket_name = customer.write_bucket_name
+        s3_config = core.S3ConnectionConfig(
             key_id=customer.write_bucket_key_id,
             region=customer.write_bucket_region,
             secret_key=customer.write_bucket_secret_key,
-            endpoint_url=customer.read_bucket_endpoint,
+            endpoint_url=customer.read_bucket_endpoint_url,
         )
-        core.upload_file(bucket, f, result_path)
+        core.upload_file(bucket_name, s3_config, f, result_path)
         if args['with_info']:
             info = core.info(im)
             info['url'] = result_url
@@ -378,23 +385,23 @@ class Customer(object):
                  read_bucket_key_id=None,
                  read_bucket_secret_key=None,
                  read_bucket_region=None,
-                 read_bucket_endpoint=None,
+                 read_bucket_endpoint_url=None,
                  write_bucket_name=None,
                  write_bucket_key_id=None,
                  write_bucket_secret_key=None,
                  write_bucket_region=None,
-                 write_bucket_endpoint=None,
+                 write_bucket_endpoint_url=None,
                  **kwargs):
         self.read_bucket_name = read_bucket_name
         self.read_bucket_key_id = read_bucket_key_id
         self.read_bucket_secret_key = read_bucket_secret_key
         self.read_bucket_region = read_bucket_region
-        self.read_bucket_endpoint = read_bucket_endpoint
+        self.read_bucket_endpoint_url = read_bucket_endpoint_url
         self.write_bucket_name = write_bucket_name or read_bucket_name
         self.write_bucket_key_id = write_bucket_key_id or read_bucket_key_id
         self.write_bucket_secret_key = write_bucket_secret_key or read_bucket_secret_key
         self.write_bucket_region = write_bucket_region or read_bucket_region
-        self.write_bucket_endpoint = write_bucket_endpoint or read_bucket_endpoint
+        self.write_bucket_endpoint_url = write_bucket_endpoint_url or read_bucket_endpoint_url
 
 
 class CredentialsStore(object):
@@ -410,7 +417,8 @@ class CredentialsStore(object):
             # Get the credentials from the private secrets bucket.
             # Boto authenticates using the IAM role assigned to the ec2 instances.
             try:
-                s3 = connect_s3()
+                s3_config = core.S3ConnectionConfig()
+                s3 = core.get_s3_client(s3_config)
                 bucket = s3.get_bucket(self.bucket_name, validate=False)
                 k = Key(bucket, 'credentials.json')
                 self.customers_credentials = json.loads(k.get_contents_as_string())
@@ -454,7 +462,7 @@ elif settings.S3_BUCKET:
             "read_bucket_region": settings.AWS_REGION,
             "read_bucket_key_id": settings.AWS_ACCESS_KEY_ID,
             "read_bucket_secret_key": settings.AWS_SECRET_ACCESS_KEY,
-            "read_bucket_endpoint": settings.S3_ENDPOINT_URL,
+            "read_bucket_endpoint_url": settings.S3_ENDPOINT_URL,
             "write_bucket_name": settings.S3_WRITE_BUCKET or settings.S3_BUCKET,
         })
 else:

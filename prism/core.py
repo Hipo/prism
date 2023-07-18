@@ -1,5 +1,8 @@
 import logging
+import os
 import typing
+from dataclasses import dataclass, field
+from functools import partial
 import urllib.parse
 import boto
 import boto.s3.connection
@@ -124,7 +127,7 @@ def get_thumb_filename(file_name, cmd, options):
 
 def split_endpoint_url(endpoint_url: str) -> typing.Tuple[str, int, bool]:
     """ Split the endpoint url into parts to use with boto.s3.connection.S3Connection
-    
+
     Primarily for using alternative S3 endpoints such as Ceph, Minio, DigitalOcean Spaces, etc.
     """
     parsed_url = urllib.parse.urlparse(endpoint_url)
@@ -135,7 +138,55 @@ def split_endpoint_url(endpoint_url: str) -> typing.Tuple[str, int, bool]:
     return host, port, secure
 
 
+@dataclass
+class S3ConnectionConfig:
+    """Config for connecting to S3 with fallback to environment variables."""
+    key_id: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_ACCESS_KEY_ID'))
+    secret_key: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_SECRET_ACCESS_KEY'))
+    region: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_REGION'))
+    endpoint_url: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'S3_ENDPOINT_URL'))
+
+
+def get_s3_client(config: typing.Optional[S3ConnectionConfig] = None) -> boto.s3.connection.S3Connection:
+    """ Get an S3 connection using the given configuration.
+
+    @TODO Simplify this when Prism is updated to use boto3
+    """
+
+    config = config or S3ConnectionConfig()
+
+    if config.endpoint_url:
+        host, port, secure = split_endpoint_url(config.endpoint_url)
+        conn = boto.s3.connection.S3Connection(
+            config.key_id,
+            config.secret_key,
+            host=host,
+            port=port,
+            is_secure=secure,
+            calling_format=boto.s3.connection.OrdinaryCallingFormat(),
+        )
+    elif config.region and config.region != 'us-east-1':
+        host = 's3-%s.amazonaws.com' % config.region
+        conn = boto.s3.connect_to_region(
+            config.region,
+            aws_access_key_id=config.key_id,
+            aws_secret_access_key=config.secret_key,
+            host=host,
+        )
+    else:
+        conn = boto.connect_s3(config.key_id, config.secret_key)
+    
+    return conn
+
+
 def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
+    """Get the public URL for an S3 object.
+
+    @TODO simplify this when boto v2 is updated to boto v3 
+    """
+    logger.info(f"get_s3_url: bucket_name={bucket_name}, bucket_region={bucket_region}, path={path}, endpoint={endpoint}")
+    print(f"get_s3_url: bucket_name={bucket_name}, bucket_region={bucket_region}, path={path}, endpoint={endpoint}")
+
     if endpoint:
         url = '{endpoint}/{bucket}/{path}'.format(
             endpoint=endpoint.rstrip("/"),
@@ -188,38 +239,14 @@ def check_s3_object_exists(url):
     return True
 
 
-def upload_file(bucket_dict: dict, file: BytesIO, new_filename: str):
+def upload_file(bucket_name: str, s3_config: S3ConnectionConfig, file: BytesIO, new_filename: str):
     """
     uploads file to s3 bucket under prism-images folder
     """
 
-    logger.info("bucket_key_id: %s", bucket_dict['key_id'])
-    logger.info("bucket_id: %s", bucket_dict['id'])
+    conn = get_s3_client(s3_config)
 
-    region = bucket_dict.get('region')
-    endpoint = bucket_dict.get('endpoint_url')
-    if endpoint:
-        host, port, secure = split_endpoint_url(endpoint)
-        conn = boto.s3.connection.S3Connection(
-            bucket_dict['key_id'],
-            bucket_dict['secret_key'],
-            host=host,
-            port=port,
-            is_secure=secure,
-            calling_format=boto.s3.connection.OrdinaryCallingFormat(),
-        )
-    elif region and region != 'us-east-1':
-        host = 's3-%s.amazonaws.com' % region
-        conn = boto.s3.connect_to_region(
-            region,
-            aws_access_key_id=bucket_dict['key_id'],
-            aws_secret_access_key=bucket_dict['secret_key'],
-            host=host,
-        )
-    else:
-        conn = boto.connect_s3(bucket_dict['key_id'], bucket_dict['secret_key'])
-
-    bucket = conn.get_bucket(bucket_dict['id'])
+    bucket = conn.get_bucket(bucket_name)
 
     extension = new_filename.rsplit('.', 1)[-1].lower()
 
