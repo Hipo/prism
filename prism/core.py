@@ -184,8 +184,6 @@ def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
 
     @TODO simplify this when boto v2 is updated to boto v3 
     """
-    logger.info(f"get_s3_url: bucket_name={bucket_name}, bucket_region={bucket_region}, path={path}, endpoint={endpoint}")
-    print(f"get_s3_url: bucket_name={bucket_name}, bucket_region={bucket_region}, path={path}, endpoint={endpoint}")
 
     if endpoint:
         url = '{endpoint}/{bucket}/{path}'.format(
