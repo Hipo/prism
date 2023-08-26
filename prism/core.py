@@ -237,7 +237,7 @@ def check_s3_object_exists(url):
     return True
 
 
-def upload_file(bucket_name: str, s3_config: S3ConnectionConfig, file: BytesIO, new_filename: str):
+def upload_file(bucket_name: str, s3_config: S3ConnectionConfig, file: typing.BinaryIO, new_filename: str) -> str:
     """
     uploads file to s3 bucket under prism-images folder
     """

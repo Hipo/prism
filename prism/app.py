@@ -405,7 +405,7 @@ class Customer(object):
 
 
 class CredentialsStore(object):
-    def __init__(self, bucket, default_customer):
+    def __init__(self, bucket: str, default_customer: str):
         self.bucket_name = bucket
         self.default_customer = default_customer
         self.customers_credentials = {}
@@ -435,7 +435,7 @@ class CredentialsStore(object):
                     return self.customers_credentials
         return self.customers_credentials
 
-    def get_customer(self, customer_key):
+    def get_customer(self, customer_key) -> Customer:
         credentials = self._get_credentials()[customer_key]
         return Customer(**credentials)
 

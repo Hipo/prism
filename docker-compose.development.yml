@@ -19,3 +19,32 @@ services:
     env_file:
       - .env
     command: [ "uwsgi", "--ini", "prism.uwsgi.development.ini" ]
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ':40283'
+    ports:
+      - "9000:9000"
+      - "40283:40283"
+    env_file:
+      - .env
+    # volumes:
+    #   - ./compose/volumes/minio-config:/root/.minio
+    #   - ./compose/volumes/minio-data:/data
+
+
+  minioclient:
+    image: minio/mc
+    depends_on:
+      - minio
+    env_file:
+      - .env
+    volumes:
+      - ./compose/minio:/etc/minio
+      # - ./compose/volumes/minio-client-config:/root/.mc
+    entrypoint: /etc/minio/create_buckets.sh ${SECRETS_BUCKET} prism-test-source-mike prism-test-source-sara prism-test-thumbs-sara
+
+volumes:
+  minio-data:
+
+
