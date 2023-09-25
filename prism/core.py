@@ -183,6 +183,7 @@ def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
     """Get the public URL for an S3 object.
 
     @TODO simplify this when boto v2 is updated to boto v3 
+    @TODO shouldn't this use signed urls or pull from the bucket directly?
     """
 
     if endpoint:
@@ -208,6 +209,7 @@ def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
 def fetch_image(url):
     s = requests.Session()
     s.mount('https://', HTTPAdapter(max_retries=retries))
+    print(f"Fetching {url}")
     r = s.get(url, timeout=5.0)
     t = r.elapsed.total_seconds()
     logging.info('S3 GET request time: %0.2f', t)
