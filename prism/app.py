@@ -197,7 +197,7 @@ def process(path, args, customer):
             key_id=customer.write_bucket_key_id,
             region=customer.write_bucket_region,
             secret_key=customer.write_bucket_secret_key,
-            endpoint_url=customer.read_bucket_endpoint_url,
+            endpoint_url=customer.write_bucket_endpoint_url,
         )
         core.upload_file(bucket_name, s3_config, f, result_path)
         if args['with_info']:
