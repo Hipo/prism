@@ -71,6 +71,7 @@ Required Environment Variables:
 
 Optional Environment Variables:
 * S3_WRITE_BUCKET [`myproject-prism-images`] (If not provided, default is `S3_BUCKET`.)
+* S3_ENDPOINT_URL (If using a non-AWS implementation of S3 like Ceph, MinIO, DigitalOcean Spaces, etc)
 
 ### Multi Customer Mode
 In Multi Customer Mode Prism can handle requests for multiple customers together, where each customer has a separate S3 bucket and separate credentials. The customers are separated by subdomain. The configuration and credentials for each subdomain are loaded from a `credentials.json` stored in the SECRETS_BUCKET. 

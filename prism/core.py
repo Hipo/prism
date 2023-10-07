@@ -1,4 +1,9 @@
 import logging
+import os
+import typing
+from dataclasses import dataclass, field
+from functools import partial
+import urllib.parse
 import boto
 import boto.s3.connection
 import requests
@@ -120,22 +125,91 @@ def get_thumb_filename(file_name, cmd, options):
     return 'prism-images/' + new_filename
 
 
-def get_s3_url(bucket_name, bucket_region, path):
-    # we use region specific urls because s3 virtual hosts don't work with https
-    # when the bucket name contains a '.'
-    if bucket_region == 'us-east-1':
-        subdomain = 's3'  # oh amazon :(
+def split_endpoint_url(endpoint_url: str) -> typing.Tuple[str, int, bool]:
+    """ Split the endpoint url into parts to use with boto.s3.connection.S3Connection
+
+    Primarily for using alternative S3 endpoints such as Ceph, Minio, DigitalOcean Spaces, etc.
+    """
+    parsed_url = urllib.parse.urlparse(endpoint_url)
+    host = parsed_url.hostname
+    assert host, "S3 endpoint URL must contain a hostname"
+    secure = parsed_url.scheme == 'https'
+    port = parsed_url.port or (443 if secure else 80)
+    return host, port, secure
+
+
+@dataclass
+class S3ConnectionConfig:
+    """Config for connecting to S3 with fallback to environment variables."""
+    key_id: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_ACCESS_KEY_ID'))
+    secret_key: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_SECRET_ACCESS_KEY'))
+    region: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'AWS_REGION'))
+    endpoint_url: typing.Optional[str] = field(default_factory=partial(os.environ.get, 'S3_ENDPOINT_URL'))
+
+
+def get_s3_client(config: typing.Optional[S3ConnectionConfig] = None) -> boto.s3.connection.S3Connection:
+    """ Get an S3 connection using the given configuration.
+
+    @TODO Simplify this when Prism is updated to use boto3
+    """
+
+    config = config or S3ConnectionConfig()
+
+    if config.endpoint_url:
+        host, port, secure = split_endpoint_url(config.endpoint_url)
+        conn = boto.s3.connection.S3Connection(
+            config.key_id,
+            config.secret_key,
+            host=host,
+            port=port,
+            is_secure=secure,
+            calling_format=boto.s3.connection.OrdinaryCallingFormat(),
+        )
+    elif config.region and config.region != 'us-east-1':
+        host = 's3-%s.amazonaws.com' % config.region
+        conn = boto.s3.connect_to_region(
+            config.region,
+            aws_access_key_id=config.key_id,
+            aws_secret_access_key=config.secret_key,
+            host=host,
+        )
     else:
-        subdomain = 's3-' + bucket_region
-    url = 'https://{subdomain}.amazonaws.com/{bucket}/{path}'.format(
-        subdomain=subdomain, bucket=bucket_name, path=path
-    )
+        conn = boto.connect_s3(config.key_id, config.secret_key)
+    
+    return conn
+
+
+def get_s3_url(bucket_name, bucket_region, path, endpoint=None):
+    """Get the public URL for an S3 object.
+
+    @TODO simplify this when boto v2 is updated to boto v3 
+    @TODO shouldn't this use signed urls or pull from the bucket directly?
+    """
+
+    if endpoint:
+        url = '{endpoint}/{bucket}/{path}'.format(
+            endpoint=endpoint.rstrip("/"),
+            bucket=bucket_name,
+            path=path.lstrip("/")
+        )
+    else:
+        # we use region specific urls because s3 virtual hosts don't work with https
+        # when the bucket name contains a '.'
+        if bucket_region == 'us-east-1':
+            subdomain = 's3'  # oh amazon :(
+        else:
+            subdomain = 's3-' + bucket_region
+        url = 'https://{subdomain}.amazonaws.com/{bucket}/{path}'.format(
+            subdomain=subdomain, bucket=bucket_name, path=path
+        )
+    logger.debug("S3 public URL: %s", url)
     return url
 
 
 def fetch_image(url):
     s = requests.Session()
     s.mount('https://', HTTPAdapter(max_retries=retries))
+    print(f"Fetching {url}")
     r = s.get(url, timeout=5.0)
     t = r.elapsed.total_seconds()
     logging.info('S3 GET request time: %0.2f', t)
@@ -165,27 +239,14 @@ def check_s3_object_exists(url):
     return True
 
 
-def upload_file(bucket_dict, file, new_filename):
+def upload_file(bucket_name: str, s3_config: S3ConnectionConfig, file: typing.BinaryIO, new_filename: str) -> str:
     """
     uploads file to s3 bucket under prism-images folder
     """
 
-    logger.info("bucket_key_id: %s", bucket_dict['key_id'])
-    logger.info("bucket_id: %s", bucket_dict['id'])
+    conn = get_s3_client(s3_config)
 
-    region = bucket_dict['region']
-    if region and region != 'us-east-1':
-        host = 's3-%s.amazonaws.com' % region
-        conn = boto.s3.connect_to_region(
-            region,
-            aws_access_key_id=bucket_dict['key_id'],
-            aws_secret_access_key=bucket_dict['secret_key'],
-            host=host,
-        )
-    else:
-        conn = boto.connect_s3(bucket_dict['key_id'], bucket_dict['secret_key'])
-
-    bucket = conn.get_bucket(bucket_dict['id'])
+    bucket = conn.get_bucket(bucket_name)
 
     extension = new_filename.rsplit('.', 1)[-1].lower()
 
